@@ -12,7 +12,6 @@ import (
 
     "github.com/gofiber/fiber/v2"
     "github.com/gofiber/fiber/v2/middleware/cors"
-    "github.com/gofiber/fiber/v2/middleware/logger"
     "github.com/gofiber/fiber/v2/middleware/recover"
 )
 
@@ -21,17 +20,18 @@ func Start() {
     utils.InitLogger()
 
     app := fiber.New(fiber.Config{
-        AppName:               "User Profile Backend",
-        EnablePrintRoutes:     true,
-        ReadTimeout:           10 * time.Second,
-        WriteTimeout:          10 * time.Second,
-        IdleTimeout:           30 * time.Second,
-        ErrorHandler:          utils.ErrorHandler,
+        AppName:           "User Profile Backend",
+        ErrorHandler:      utils.ErrorHandler,
+        EnablePrintRoutes: true,
     })
 
-    // Middleware
+    // Panic recovery
     app.Use(recover.New())
-    app.Use(logger.New())
+
+    // Global middleware (request ID, security, logging, rate limit)
+    serverHttp.RegisterGlobalMiddleware(app)
+
+    // CORS
     app.Use(cors.New(cors.Config{
         AllowCredentials: true,
         AllowOrigins:     "*",
@@ -39,10 +39,10 @@ func Start() {
         AllowHeaders:     "Authorization,Content-Type,X-Refresh-Token",
     }))
 
-    // Register routes
+    // Routes
     serverHttp.SetupRoutes(app)
 
-    // Graceful shutdown for async logging worker
+    // Graceful activity log shutdown
     go func() {
         <-app.Context().Done()
         services.ShutdownActivityLogger()
