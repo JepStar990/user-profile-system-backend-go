@@ -8,46 +8,65 @@ import (
     "user-profile-system-backend-go/internal/repositories"
     "user-profile-system-backend-go/internal/storage"
 
+    "github.com/gofiber/fiber/v2"
     "github.com/google/uuid"
     "gorm.io/gorm"
 )
 
-// Register a download (metadata only)
-func RegisterDownload(userID uuid.UUID, req dto.CreateDownloadRequest) error {
+// -----------------------
+//  DOWNLOADS SERVICE
+// -----------------------
+
+func RegisterDownload(userID uuid.UUID, req dto.CreateDownloadRequest, c *fiber.Ctx) error {
     d := &models.UserDownload{
         UserID:          userID,
         ContentID:       req.ContentID,
         ContentType:     req.ContentType,
         DownloadQuality: req.DownloadQuality,
-
-        // In a real system, you would fetch metadata like file size from S3.
-        FileSizeBytes: 0,
-        Status:        "ready",
-
-        // Permanent storage location — this is where the file lives in S3
-        StorageURL: "media/" + req.ContentID + ".mp3", // Example — adjust later
+        StorageURL:      "media/" + req.ContentID + ".mp3",
     }
 
-    return repositories.CreateOrUpdate(d)
+    err := repositories.CreateOrUpdate(d)
+    if err == nil {
+        LogActivity(userID, "register_download", map[string]any{
+            "content_id":   req.ContentID,
+            "content_type": req.ContentType,
+        }, c.IP(), string(c.Context().UserAgent()))
+    }
+
+    return err
 }
 
-// Get download entries
 func GetDownloads(userID uuid.UUID) ([]models.UserDownload, error) {
     return repositories.ListDownloads(userID)
 }
 
-func RemoveDownload(userID uuid.UUID, contentID, contentType string) error {
-    return repositories.DeleteDownload(userID, contentID, contentType)
+func RemoveDownload(userID uuid.UUID, contentID, contentType string, c *fiber.Ctx) error {
+    err := repositories.DeleteDownload(userID, contentID, contentType)
+    if err == nil {
+        LogActivity(userID, "remove_download", map[string]any{
+            "content_id":   contentID,
+            "content_type": contentType,
+        }, c.IP(), string(c.Context().UserAgent()))
+    }
+    return err
 }
 
-func GetPresignedURL(userID uuid.UUID, contentID, contentType string) (string, error) {
+func GetPresignedURL(userID uuid.UUID, contentID, contentType string, c *fiber.Ctx) (string, error) {
     d, err := repositories.FindDownload(userID, contentID, contentType)
     if errors.Is(err, gorm.ErrRecordNotFound) {
         return "", errors.New("download entry not found")
     }
 
     presigner := storage.NewS3Presigner()
+    url, err := presigner.GenerateDownloadURL(d.StorageURL)
 
-    // d.StorageURL is the key in S3
-    return presigner.GenerateDownloadURL(d.StorageURL)
+    if err == nil {
+        LogActivity(userID, "download_presigned_url", map[string]any{
+            "content_id":   contentID,
+            "content_type": contentType,
+        }, c.IP(), string(c.Context().UserAgent()))
+    }
+
+    return url, err
 }

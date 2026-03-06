@@ -10,11 +10,12 @@ import (
     "user-profile-system-backend-go/internal/repositories"
     "user-profile-system-backend-go/internal/security"
 
+    "github.com/gofiber/fiber/v2"
     "github.com/google/uuid"
     "gorm.io/gorm"
 )
 
-func Register(req dto.RegisterRequest) (*models.User, error) {
+func Register(req dto.RegisterRequest, c *fiber.Ctx) (*models.User, error) {
     hash, err := security.GeneratePasswordHash(req.Password)
     if err != nil {
         return nil, err
@@ -27,13 +28,16 @@ func Register(req dto.RegisterRequest) (*models.User, error) {
     }
 
     err = repositories.CreateUser(user)
+    if err == nil {
+        LogActivity(user.ID, "register", nil, c.IP(), string(c.Context().UserAgent()))
+    }
     return user, err
 }
 
-func Login(req dto.LoginRequest) (*models.User, error) {
+func Login(req dto.LoginRequest, c *fiber.Ctx) (*models.User, error) {
     user, err := repositories.FindUserByEmail(req.Email)
-    if err == gorm.ErrRecordNotFound {
-        return nil, err
+    if err != nil {
+        return nil, gorm.ErrRecordNotFound
     }
 
     ok, _ := security.ComparePasswordHash(req.Password, user.PasswordHash)
@@ -41,6 +45,7 @@ func Login(req dto.LoginRequest) (*models.User, error) {
         return nil, gorm.ErrRecordNotFound
     }
 
+    LogActivity(user.ID, "login", nil, c.IP(), string(c.Context().UserAgent()))
     return user, nil
 }
 
@@ -66,3 +71,10 @@ func GenerateTokenPair(userID uuid.UUID) (string, string, error) {
 
     return access, refresh, nil
 }
+
+func Logout(userID uuid.UUID, refresh string, c *fiber.Ctx) error {
+    hash := sha256.Sum256([]byte(refresh))
+    err := repositories.RevokeToken(hex.EncodeToString(hash[:]))
+
+    if err == nil {
+        LogActivity(userID, "

@@ -7,6 +7,7 @@ import (
 
     "user-profile-system-backend-go/internal/db"
     serverHttp "user-profile-system-backend-go/internal/server/http"
+    "user-profile-system-backend-go/internal/services"
     "user-profile-system-backend-go/internal/utils"
 
     "github.com/gofiber/fiber/v2"
@@ -26,10 +27,9 @@ func Start() {
         WriteTimeout:          10 * time.Second,
         IdleTimeout:           30 * time.Second,
         ErrorHandler:          utils.ErrorHandler,
-        DisableStartupMessage: false,
     })
 
-    // GLOBAL MIDDLEWARE
+    // Middleware
     app.Use(recover.New())
     app.Use(logger.New())
     app.Use(cors.New(cors.Config{
@@ -39,10 +39,15 @@ func Start() {
         AllowHeaders:     "Authorization,Content-Type,X-Refresh-Token",
     }))
 
-    // ROUTES
+    // Register routes
     serverHttp.SetupRoutes(app)
 
-    // START SERVER
+    // Graceful shutdown for async logging worker
+    go func() {
+        <-app.Context().Done()
+        services.ShutdownActivityLogger()
+    }()
+
     port := os.Getenv("APP_PORT")
     if port == "" {
         port = "8080"

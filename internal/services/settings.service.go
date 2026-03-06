@@ -7,47 +7,14 @@ import (
     "user-profile-system-backend-go/internal/dto"
     "user-profile-system-backend-go/internal/repositories"
 
+    "github.com/gofiber/fiber/v2"
     "github.com/google/uuid"
 )
 
-// Default settings (all disabled — privacy first).
-var defaultSettings = map[string]interface{}{
-    "audio": map[string]interface{}{
-        "autoplay":         false,
-        "background_play":  false,
-        "playback_speed":   1.0,
-        "download_quality": "low",
-    },
-    "voice": map[string]interface{}{
-        "enabled":   false,
-        "wake_word": nil,
-    },
-    "live_radio": map[string]interface{}{
-        "live_default":     false,
-        "auto_skip_silence": false,
-        "schedule":         []string{},
-    },
-    "notifications": map[string]interface{}{
-        "breaking_news": false,
-        "categories": map[string]interface{}{
-            "breaking":   false,
-            "politics":   false,
-            "technology": false,
-            "business":   false,
-        },
-    },
-    "appearance": map[string]interface{}{
-        "dark_mode":          false,
-        "theme_color":        nil,
-        "background_opacity": 100,
-        "blur_effects":       false,
-    },
-    "privacy": map[string]interface{}{
-        "allow_data_collection": false,
-    },
-}
+// -----------------------
+//  SETTINGS SERVICE
+// -----------------------
 
-// GetSettings returns full JSON settings for the user.
 func GetSettings(userID uuid.UUID) (map[string]interface{}, error) {
     s, err := repositories.EnsureSettings(userID, defaultSettings)
     if err != nil {
@@ -59,7 +26,6 @@ func GetSettings(userID uuid.UUID) (map[string]interface{}, error) {
     return decoded, err
 }
 
-// saveSettings writes JSON back to DB.
 func saveSettings(userID uuid.UUID, settings map[string]interface{}) error {
     raw, err := json.Marshal(settings)
     if err != nil {
@@ -68,7 +34,7 @@ func saveSettings(userID uuid.UUID, settings map[string]interface{}) error {
     return repositories.UpdateSettingsJSON(userID, raw)
 }
 
-// mergeSection updates only a specific part of settings JSON.
+// mergeSection updates only one settings block (audio, voice, etc.)
 func mergeSection(userID uuid.UUID, section string, payload interface{}) error {
     settings, err := GetSettings(userID)
     if err != nil {
@@ -77,49 +43,66 @@ func mergeSection(userID uuid.UUID, section string, payload interface{}) error {
 
     sectionMap, ok := settings[section].(map[string]interface{})
     if !ok {
-        return fmt.Errorf("settings section '%s' invalid or missing", section)
+        return fmt.Errorf("settings section '%s' invalid", section)
     }
 
-    // Convert struct -> map[string]interface{}
     patchBytes, _ := json.Marshal(payload)
-
     var patch map[string]interface{}
     json.Unmarshal(patchBytes, &patch)
 
-    // Merge keys
     for key, val := range patch {
         sectionMap[key] = val
     }
 
     settings[section] = sectionMap
-
     return saveSettings(userID, settings)
 }
 
-//
-// Public update methods below
-//
-
-func UpdateAudioSettings(userID uuid.UUID, req dto.AudioSettingsRequest) error {
-    return mergeSection(userID, "audio", req)
+// Each update function logs activity:
+func UpdateAudioSettings(userID uuid.UUID, req dto.AudioSettingsRequest, c *fiber.Ctx) error {
+    err := mergeSection(userID, "audio", req)
+    if err == nil {
+        LogActivity(userID, "update_settings_audio", nil, c.IP(), string(c.Context().UserAgent()))
+    }
+    return err
 }
 
-func UpdateVoiceSettings(userID uuid.UUID, req dto.VoiceSettingsRequest) error {
-    return mergeSection(userID, "voice", req)
+func UpdateVoiceSettings(userID uuid.UUID, req dto.VoiceSettingsRequest, c *fiber.Ctx) error {
+    err := mergeSection(userID, "voice", req)
+    if err == nil {
+        LogActivity(userID, "update_settings_voice", nil, c.IP(), string(c.Context().UserAgent()))
+    }
+    return err
 }
 
-func UpdateLiveRadioSettings(userID uuid.UUID, req dto.LiveRadioSettingsRequest) error {
-    return mergeSection(userID, "live_radio", req)
+func UpdateLiveRadioSettings(userID uuid.UUID, req dto.LiveRadioSettingsRequest, c *fiber.Ctx) error {
+    err := mergeSection(userID, "live_radio", req)
+    if err == nil {
+        LogActivity(userID, "update_settings_live_radio", nil, c.IP(), string(c.Context().UserAgent()))
+    }
+    return err
 }
 
-func UpdateNotificationSettings(userID uuid.UUID, req dto.NotificationSettingsRequest) error {
-    return mergeSection(userID, "notifications", req)
+func UpdateNotificationSettings(userID uuid.UUID, req dto.NotificationSettingsRequest, c *fiber.Ctx) error {
+    err := mergeSection(userID, "notifications", req)
+    if err == nil {
+        LogActivity(userID, "update_settings_notifications", nil, c.IP(), string(c.Context().UserAgent()))
+    }
+    return err
 }
 
-func UpdateAppearanceSettings(userID uuid.UUID, req dto.AppearanceSettingsRequest) error {
-    return mergeSection(userID, "appearance", req)
+func UpdateAppearanceSettings(userID uuid.UUID, req dto.AppearanceSettingsRequest, c *fiber.Ctx) error {
+    err := mergeSection(userID, "appearance", req)
+    if err == nil {
+        LogActivity(userID, "update_settings_appearance", nil, c.IP(), string(c.Context().UserAgent()))
+    }
+    return err
 }
 
-func UpdatePrivacySettings(userID uuid.UUID, req dto.PrivacySettingsRequest) error {
-    return mergeSection(userID, "privacy", req)
+func UpdatePrivacySettings(userID uuid.UUID, req dto.PrivacySettingsRequest, c *fiber.Ctx) error {
+    err := mergeSection(userID, "privacy", req)
+    if err == nil {
+        LogActivity(userID, "update_settings_privacy", nil, c.IP(), string(c.Context().UserAgent()))
+    }
+    return err
 }
