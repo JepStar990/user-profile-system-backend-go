@@ -9,15 +9,15 @@ import (
 
 func SetupRoutes(app *fiber.App) {
 
-    // Controllers
     auth := controllers.AuthController{}
     profile := controllers.ProfileController{}
     settings := controllers.SettingsController{}
+    favorites := controllers.FavoritesController{}
 
     api := app.Group("/api")
 
     //
-    // PUBLIC AUTH ROUTES
+    // AUTH
     //
     authRoutes := api.Group("/auth")
     authRoutes.Post("/register", auth.Register)
@@ -26,7 +26,7 @@ func SetupRoutes(app *fiber.App) {
     authRoutes.Post("/logout", auth.Logout)
 
     //
-    // PRIVATE ROUTES (JWT REQUIRED)
+    // PRIVATE ROUTES
     //
     private := api.Group("/private", security.AuthRequired)
 
@@ -45,9 +45,12 @@ func SetupRoutes(app *fiber.App) {
     private.Put("/settings/appearance", settings.UpdateAppearance)
     private.Put("/settings/privacy", settings.UpdatePrivacy)
 
-    //
-    // Health Check
-    //
+    // Favorites
+    private.Post("/favorites", favorites.AddFavorite)
+    private.Delete("/favorites", favorites.RemoveFavorite)
+    private.Get("/favorites", favorites.ListFavorites)
+
+    // Health
     api.Get("/health", func(c *fiber.Ctx) error {
         return c.JSON(fiber.Map{"status": "ok"})
     })
