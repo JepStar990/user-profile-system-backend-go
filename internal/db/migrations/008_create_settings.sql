@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS user_settings (
+    user_id CHAR(36) PRIMARY KEY,
+    settings_json JSON NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
