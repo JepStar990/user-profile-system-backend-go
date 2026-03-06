@@ -60,6 +60,18 @@ func SetupRoutes(app *fiber.App) {
     private.Delete("/history", history.ClearHistory)
     private.Get("/history/stats", history.Stats)
 
+    // ADMIN ROUTES
+    admin := app.Group("/api/admin", security.AdminAuthRequired)
+
+    health := controllers.NewAdminHealthController()
+    adminMetrics := controllers.AdminMetricsController{}
+    adminVersion := controllers.AdminVersionController{}
+
+    admin.Get("/health", health.Health)
+    admin.Get("/metrics", adminMetrics.Metrics)
+    admin.Get("/version", adminVersion.Version)
+
+
     // Health
     api.Get("/health", func(c *fiber.Ctx) error {
         return c.JSON(fiber.Map{"status": "ok"})
