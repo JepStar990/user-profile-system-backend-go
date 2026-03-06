@@ -14,6 +14,7 @@ func SetupRoutes(app *fiber.App) {
     settings := controllers.SettingsController{}
     favorites := controllers.FavoritesController{}
     downloads := controllers.DownloadsController{}
+    history := controllers.HistoryController{}
 
     api := app.Group("/api")
 
@@ -52,6 +53,12 @@ func SetupRoutes(app *fiber.App) {
     private.Get("/downloads", downloads.ListDownloads)
     private.Delete("/downloads", downloads.RemoveDownload)
     private.Get("/downloads/url", downloads.PresignedURL)
+
+    // Listening History + Stats
+    private.Get("/history", history.GetHistory)
+    private.Post("/history/progress", history.UpdateProgress)
+    private.Delete("/history", history.ClearHistory)
+    private.Get("/history/stats", history.Stats)
 
     // Health
     api.Get("/health", func(c *fiber.Ctx) error {
