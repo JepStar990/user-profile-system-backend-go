@@ -13,21 +13,18 @@ func SetupRoutes(app *fiber.App) {
     profile := controllers.ProfileController{}
     settings := controllers.SettingsController{}
     favorites := controllers.FavoritesController{}
+    downloads := controllers.DownloadsController{}
 
     api := app.Group("/api")
 
-    //
-    // AUTH
-    //
+    // Auth
     authRoutes := api.Group("/auth")
     authRoutes.Post("/register", auth.Register)
     authRoutes.Post("/login", auth.Login)
     authRoutes.Post("/refresh", auth.Refresh)
     authRoutes.Post("/logout", auth.Logout)
 
-    //
-    // PRIVATE ROUTES
-    //
+    // Private
     private := api.Group("/private", security.AuthRequired)
 
     // Profile
@@ -49,6 +46,12 @@ func SetupRoutes(app *fiber.App) {
     private.Post("/favorites", favorites.AddFavorite)
     private.Delete("/favorites", favorites.RemoveFavorite)
     private.Get("/favorites", favorites.ListFavorites)
+
+    // Downloads
+    private.Post("/downloads", downloads.RegisterDownload)
+    private.Get("/downloads", downloads.ListDownloads)
+    private.Delete("/downloads", downloads.RemoveDownload)
+    private.Get("/downloads/url", downloads.PresignedURL)
 
     // Health
     api.Get("/health", func(c *fiber.Ctx) error {
