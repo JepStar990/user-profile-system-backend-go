@@ -8,17 +8,35 @@ import (
 )
 
 func SetupRoutes(app *fiber.App) {
+
+    // Instantiate controllers
     auth := controllers.AuthController{}
+    profile := controllers.ProfileController{}
 
     api := app.Group("/api")
 
-    api.Post("/auth/register", auth.Register)
-    api.Post("/auth/login", auth.Login)
-    api.Post("/auth/refresh", auth.Refresh)
-    api.Post("/auth/logout", auth.Logout)
+    // ---------------------------
+    // PUBLIC AUTH ROUTES
+    // ---------------------------
+    authRoutes := api.Group("/auth")
+    authRoutes.Post("/register", auth.Register)
+    authRoutes.Post("/login", auth.Login)
+    authRoutes.Post("/refresh", auth.Refresh)
+    authRoutes.Post("/logout", auth.Logout)
 
+    // ---------------------------
+    // PROTECTED ROUTES
+    // ---------------------------
     private := api.Group("/private", security.AuthRequired)
-    private.Get("/profile", func(c *fiber.Ctx) error {
-        return c.JSON(fiber.Map{"user_id": c.Locals("user_id")})
+
+    // PROFILE ROUTES
+    private.Get("/profile", profile.GetProfile)
+    private.Put("/profile", profile.UpdateProfile)
+    private.Post("/profile/change-password", profile.ChangePassword)
+    private.Post("/profile/avatar", profile.UploadAvatar)
+
+    // HEALTH CHECK
+    api.Get("/health", func(c *fiber.Ctx) error {
+        return c.JSON(fiber.Map{"status": "ok"})
     })
 }
