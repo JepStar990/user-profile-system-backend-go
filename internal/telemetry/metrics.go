@@ -4,14 +4,12 @@ import (
     "strconv"
     "time"
 
+    "github.com/gofiber/adaptor/v2"
     "github.com/gofiber/fiber/v2"
     "github.com/prometheus/client_golang/prometheus"
     "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-// We expose two types of metrics:
-// 1) HTTP request count
-// 2) HTTP request duration histogram
 var (
     httpRequestsTotal = prometheus.NewCounterVec(
         prometheus.CounterOpts{
@@ -31,22 +29,31 @@ var (
     )
 )
 
-// InitMetrics registers collectors globally.
+// InitMetrics registers Prometheus collectors.
 // Call once at startup.
 func InitMetrics() {
+    // MustRegister will panic if called twice; if you run tests repeatedly,
+    // prefer a sync.Once guard. For simplicity in a service binary, this is okay.
     prometheus.MustRegister(httpRequestsTotal)
     prometheus.MustRegister(httpRequestDuration)
 }
 
 // MetricsMiddleware instruments Fiber requests.
-// IMPORTANT: Avoid high-cardinality labels. We use c.Route().Path (template path) not raw URL.
 func MetricsMiddleware() fiber.Handler {
     return func(c *fiber.Ctx) error {
         start := time.Now()
         err := c.Next()
 
         method := c.Method()
-        path := c.Route().Path
+        route := c.Route()
+        path := ""
+        if route != nil {
+            path = route.Path
+        }
+        if path == "" {
+            path = c.Path()
+        }
+
         status := strconv.Itoa(c.Response().StatusCode())
 
         httpRequestsTotal.WithLabelValues(method, path, status).Inc()
@@ -56,11 +63,7 @@ func MetricsMiddleware() fiber.Handler {
     }
 }
 
-// RegisterMetricsRoute mounts /metrics using promhttp.
+// RegisterMetricsRoute mounts /metrics using promhttp via Fiber adaptor.
 func RegisterMetricsRoute(app *fiber.App, path string) {
-    // Fiber doesn't natively accept http.Handler, so we use a bridge.
-    app.Get(path, func(c *fiber.Ctx) error {
-        promhttp.Handler().ServeHTTP(c.Context().ResponseWriter(), c.Context().Request())
-        return nil
-    })
+    app.Get(path, adaptor.HTTPHandler(promhttp.Handler()))
 }
