@@ -1,0 +1,45 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: user_profile_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: radioai
+      MYSQL_USER: radioai
+      MYSQL_PASSWORD: radioaipassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  api:
+    build: .
+    container_name: user_profile_api
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    environment:
+      APP_ENV: development
+      APP_PORT: 8080
+
+      DB_DSN: radioai:radioaipassword@tcp(mysql:3306)/radioai?charset=utf8mb4&parseTime=True&loc=Local
+
+      JWT_ACCESS_SECRET: "CHANGE_ME_ACCESS_SECRET_very_long"
+      JWT_REFRESH_SECRET: "CHANGE_ME_REFRESH_SECRET_very_long"
+      ACCESS_TOKEN_EXPIRES: "15m"
+      REFRESH_TOKEN_EXPIRES: "720h"
+
+      AWS_S3_BUCKET: "your-bucket-name"
+      AWS_REGION: "eu-west-1"
+
+      ADMIN_API_KEY: "CHANGE_ME_ADMIN_KEY"
+
+      CORS_ALLOW_ORIGINS: "http://localhost:5173"
+      OTEL_EXPORTER_OTLP_ENDPOINT: ""
+
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql_data:
