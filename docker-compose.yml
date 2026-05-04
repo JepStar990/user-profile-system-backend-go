@@ -1,29 +1,28 @@
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: user_profile_mysql
+  postgres:
+    image: postgres:16-alpine
+    container_name: user_profile_postgres
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: radioai
-      MYSQL_USER: radioai
-      MYSQL_PASSWORD: radioaipassword
+      POSTGRES_DB: radioai
+      POSTGRES_USER: radioai
+      POSTGRES_PASSWORD: radioaipassword
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
 
   api:
     build: .
     container_name: user_profile_api
     restart: unless-stopped
     depends_on:
-      - mysql
+      - postgres
     environment:
       APP_ENV: development
       APP_PORT: 8080
 
-      DB_DSN: radioai:radioaipassword@tcp(mysql:3306)/radioai?charset=utf8mb4&parseTime=True&loc=Local
+      DB_DSN: host=postgres user=radioai password=radioaipassword dbname=radioai port=5432 sslmode=disable
 
       JWT_ACCESS_SECRET: "CHANGE_ME_ACCESS_SECRET_very_long"
       JWT_REFRESH_SECRET: "CHANGE_ME_REFRESH_SECRET_very_long"
@@ -42,4 +41,4 @@ services:
       - "8080:8080"
 
 volumes:
-  mysql_data:
+  postgres_data:
