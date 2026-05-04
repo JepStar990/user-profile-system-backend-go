@@ -1,14 +1,14 @@
 package dto
 
 type RegisterRequest struct {
-    Email    string `json:"email" validate:"required,email"`
-    Username string `json:"username" validate:"required,min=3,max=50"`
-    Password string `json:"password" validate:"required,min=8"`
+    Email    string `json:"email" validate:"required,email,max=255"`
+    Username string `json:"username" validate:"required,min=3,max=50,alphanumunicode"`
+    Password string `json:"password" validate:"required,min=8,max=128"`
 }
 
 type LoginRequest struct {
-    Email    string `json:"email" validate:"required,email"`
-    Password string `json:"password" validate:"required"`
+    Email    string `json:"email" validate:"required,email,max=255"`
+    Password string `json:"password" validate:"required,max=128"`
 }
 
 type AuthResponse struct {

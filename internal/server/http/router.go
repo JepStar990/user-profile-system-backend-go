@@ -2,6 +2,7 @@ package http
 
 import (
     "user-profile-system-backend-go/internal/controllers"
+    "user-profile-system-backend-go/internal/db"
     "user-profile-system-backend-go/internal/security"
 
     "github.com/gofiber/fiber/v2"
@@ -72,8 +73,15 @@ func SetupRoutes(app *fiber.App) {
     admin.Get("/version", adminVersion.Version)
 
 
-    // Health
+    // Health (public, used by Render for uptime monitoring)
     api.Get("/health", func(c *fiber.Ctx) error {
-        return c.JSON(fiber.Map{"status": "ok"})
+        sqlDB, err := db.DB.DB()
+        if err != nil || sqlDB.Ping() != nil {
+            return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+                "status": "degraded",
+                "db":     "unreachable",
+            })
+        }
+        return c.JSON(fiber.Map{"status": "ok", "db": "connected"})
     })
 }
