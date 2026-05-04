@@ -1,13 +1,17 @@
 package server
 
 import (
+    "context"
     "log"
     "os"
+    "os/signal"
+    "syscall"
     "time"
 
     "user-profile-system-backend-go/internal/db"
     serverHttp "user-profile-system-backend-go/internal/server/http"
     "user-profile-system-backend-go/internal/services"
+    "user-profile-system-backend-go/internal/telemetry"
     "user-profile-system-backend-go/internal/utils"
 
     "github.com/gofiber/fiber/v2"
@@ -17,7 +21,6 @@ import (
 
 func Start() {
     db.ConnectMySQL()
-    utils.InitLogger()
 
     // ---- Telemetry init ----
     telemetry.InitMetrics()
@@ -60,11 +63,15 @@ func Start() {
     // Metrics endpoint (admin/internal)
     telemetry.RegisterMetricsRoute(app, "/metrics")
 
-    // Graceful activity log shutdown
+    // Graceful shutdown on SIGINT/SIGTERM
     go func() {
-        <-app.Context().Done()
+        sigCh := make(chan os.Signal, 1)
+        signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+        <-sigCh
+        log.Println("Shutting down...")
         services.ShutdownActivityLogger()
         _ = tracingShutdown(context.Background())
+        _ = app.Shutdown()
     }()
 
     port := os.Getenv("APP_PORT")

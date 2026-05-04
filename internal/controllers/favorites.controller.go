@@ -23,7 +23,7 @@ func (FavoritesController) AddFavorite(c *fiber.Ctx) error {
         return err
     }
 
-    err := services.AddFavorite(userID, body)
+    err := services.AddFavorite(userID, body, c)
     if err != nil {
         return fiber.ErrInternalServerError
     }
@@ -43,7 +43,7 @@ func (FavoritesController) RemoveFavorite(c *fiber.Ctx) error {
         return err
     }
 
-    err := services.RemoveFavorite(userID, body)
+    err := services.RemoveFavorite(userID, body, c)
     if err != nil {
         return fiber.ErrInternalServerError
     }

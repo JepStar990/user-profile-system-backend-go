@@ -77,4 +77,7 @@ func Logout(userID uuid.UUID, refresh string, c *fiber.Ctx) error {
     err := repositories.RevokeToken(hex.EncodeToString(hash[:]))
 
     if err == nil {
-        LogActivity(userID, "
+        LogActivity(userID, "logout", nil, c.IP(), string(c.Context().UserAgent()))
+    }
+    return err
+}

@@ -23,7 +23,7 @@ func (DownloadsController) RegisterDownload(c *fiber.Ctx) error {
         return err
     }
 
-    if err := services.RegisterDownload(userID, body); err != nil {
+    if err := services.RegisterDownload(userID, body, c); err != nil {
         return fiber.ErrInternalServerError
     }
 
@@ -54,7 +54,7 @@ func (DownloadsController) RemoveDownload(c *fiber.Ctx) error {
         return err
     }
 
-    if err := services.RemoveDownload(userID, body.ContentID, body.ContentType); err != nil {
+    if err := services.RemoveDownload(userID, body.ContentID, body.ContentType, c); err != nil {
         return fiber.ErrInternalServerError
     }
 
@@ -68,7 +68,7 @@ func (DownloadsController) PresignedURL(c *fiber.Ctx) error {
     contentID := c.Query("content_id")
     contentType := c.Query("content_type")
 
-    url, err := services.GetPresignedURL(userID, contentID, contentType)
+    url, err := services.GetPresignedURL(userID, contentID, contentType, c)
     if err != nil {
         return fiber.NewError(fiber.StatusNotFound, err.Error())
     }

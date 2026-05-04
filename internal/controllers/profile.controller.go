@@ -35,7 +35,7 @@ func (ProfileController) UpdateProfile(c *fiber.Ctx) error {
         return err
     }
 
-    if err := services.UpdateProfile(userID, body); err != nil {
+    if err := services.UpdateUserProfile(userID, body, c); err != nil {
         return fiber.ErrInternalServerError
     }
 
@@ -54,7 +54,7 @@ func (ProfileController) ChangePassword(c *fiber.Ctx) error {
         return err
     }
 
-    err := services.ChangePassword(userID, body)
+    err := services.ChangeUserPassword(userID, body, c)
     if err != nil {
         return fiber.NewError(fiber.StatusBadRequest, err.Error())
     }
@@ -70,7 +70,7 @@ func (ProfileController) UploadAvatar(c *fiber.Ctx) error {
         return fiber.NewError(fiber.StatusBadRequest, "Avatar file required")
     }
 
-    url, err := services.UploadAvatar(userID, file)
+    url, err := services.UploadAvatar(userID, file, c)
     if err != nil {
         return fiber.NewError(fiber.StatusInternalServerError, err.Error())
     }

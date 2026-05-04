@@ -11,6 +11,37 @@ import (
     "github.com/google/uuid"
 )
 
+var defaultSettings = map[string]interface{}{
+    "audio": map[string]interface{}{
+        "volume":      0.8,
+        "equalizer":   "flat",
+        "crossfade":   true,
+        "autoplay":    true,
+    },
+    "voice": map[string]interface{}{
+        "language": "en",
+        "speed":    1.0,
+        "pitch":    1.0,
+    },
+    "live_radio": map[string]interface{}{
+        "preferred_genre":  "",
+        "explicit_filter":  false,
+        "auto_play":        false,
+    },
+    "notifications": map[string]interface{}{
+        "push_enabled":  true,
+        "email_enabled": true,
+    },
+    "appearance": map[string]interface{}{
+        "theme":    "system",
+        "font_size": "medium",
+    },
+    "privacy": map[string]interface{}{
+        "show_activity":  true,
+        "show_favorites": true,
+    },
+}
+
 // -----------------------
 //  SETTINGS SERVICE
 // -----------------------

@@ -25,7 +25,7 @@ func (AuthController) Register(c *fiber.Ctx) error {
         return err
     }
 
-    user, err := services.Register(body)
+    user, err := services.Register(body, c)
     if err != nil {
         return fiber.NewError(fiber.StatusConflict, "Email or username already exists")
     }
@@ -42,7 +42,7 @@ func (AuthController) Login(c *fiber.Ctx) error {
         return fiber.NewError(fiber.StatusBadRequest, "Invalid JSON")
     }
 
-    user, err := services.Login(body)
+    user, err := services.Login(body, c)
     if err != nil {
         return fiber.NewError(fiber.StatusUnauthorized, "Invalid credentials")
     }

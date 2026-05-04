@@ -45,7 +45,9 @@ func (SettingsController) UpdateAudio(c *fiber.Ctx) error {
     }
 
     userID, _ := uuid.Parse(c.Locals("user_id").(string))
-    services.UpdateAudioSettings(userID, body)
+    if err := services.UpdateAudioSettings(userID, body, c); err != nil {
+        return fiber.ErrInternalServerError
+    }
 
     return c.JSON(fiber.Map{"message": "Audio settings updated"})
 }
@@ -57,7 +59,9 @@ func (SettingsController) UpdateVoice(c *fiber.Ctx) error {
     }
 
     userID, _ := uuid.Parse(c.Locals("user_id").(string))
-    services.UpdateVoiceSettings(userID, body)
+    if err := services.UpdateVoiceSettings(userID, body, c); err != nil {
+        return fiber.ErrInternalServerError
+    }
 
     return c.JSON(fiber.Map{"message": "Voice settings updated"})
 }
@@ -69,7 +73,9 @@ func (SettingsController) UpdateLive(c *fiber.Ctx) error {
     }
 
     userID, _ := uuid.Parse(c.Locals("user_id").(string))
-    services.UpdateLiveRadioSettings(userID, body)
+    if err := services.UpdateLiveRadioSettings(userID, body, c); err != nil {
+        return fiber.ErrInternalServerError
+    }
 
     return c.JSON(fiber.Map{"message": "Live radio settings updated"})
 }
@@ -81,7 +87,9 @@ func (SettingsController) UpdateNotifications(c *fiber.Ctx) error {
     }
 
     userID, _ := uuid.Parse(c.Locals("user_id").(string))
-    services.UpdateNotificationSettings(userID, body)
+    if err := services.UpdateNotificationSettings(userID, body, c); err != nil {
+        return fiber.ErrInternalServerError
+    }
 
     return c.JSON(fiber.Map{"message": "Notification settings updated"})
 }
@@ -93,7 +101,9 @@ func (SettingsController) UpdateAppearance(c *fiber.Ctx) error {
     }
 
     userID, _ := uuid.Parse(c.Locals("user_id").(string))
-    services.UpdateAppearanceSettings(userID, body)
+    if err := services.UpdateAppearanceSettings(userID, body, c); err != nil {
+        return fiber.ErrInternalServerError
+    }
 
     return c.JSON(fiber.Map{"message": "Appearance settings updated"})
 }
@@ -105,7 +115,9 @@ func (SettingsController) UpdatePrivacy(c *fiber.Ctx) error {
     }
 
     userID, _ := uuid.Parse(c.Locals("user_id").(string))
-    services.UpdatePrivacySettings(userID, body)
+    if err := services.UpdatePrivacySettings(userID, body, c); err != nil {
+        return fiber.ErrInternalServerError
+    }
 
     return c.JSON(fiber.Map{"message": "Privacy settings updated"})
 }

@@ -1,6 +1,10 @@
 package recommendations
 
-import "user-profile-system-backend-go/internal/models"
+import (
+    "sort"
+
+    "user-profile-system-backend-go/internal/models"
+)
 
 func RecommendForUser(userID string, history []models.UserHistory, favorites []models.UserFavorite, allContent []models.ContentItem) []models.ContentItem {
 

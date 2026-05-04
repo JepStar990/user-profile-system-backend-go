@@ -33,7 +33,7 @@ func (HistoryController) UpdateProgress(c *fiber.Ctx) error {
         return err
     }
 
-    if err := services.UpdateProgress(userID, body); err != nil {
+    if err := services.UpdateProgress(userID, body, c); err != nil {
         return fiber.ErrInternalServerError
     }
 
@@ -43,7 +43,7 @@ func (HistoryController) UpdateProgress(c *fiber.Ctx) error {
 // DELETE /history
 func (HistoryController) ClearHistory(c *fiber.Ctx) error {
     userID, _ := uuid.Parse(c.Locals("user_id").(string))
-    if err := services.ClearUserHistory(userID); err != nil {
+    if err := services.ClearUserHistory(userID, c); err != nil {
         return fiber.ErrInternalServerError
     }
     return c.JSON(fiber.Map{"message": "History cleared"})
