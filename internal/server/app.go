@@ -48,14 +48,25 @@ func Start() {
     app.Use(telemetry.MetricsMiddleware())
     app.Use(telemetry.TracingMiddleware("user-profile-system-backend-go"))
 
-    // CORS
-    app.Use(cors.New(cors.Config{
-        AllowCredentials: true,
-        // AllowOrigins:     "*",
-        AllowOrigins:     os.Getenv("CORS_ALLOW_ORIGINS"), // frontend link
-        AllowMethods:     "GET,POST,PUT,DELETE",
-        AllowHeaders:     "Authorization,Content-Type,X-Refresh-Token,X-Admin-Key,X-Request-ID",
-    }))
+    // CORS – allow specific origins from env, or reflect any origin for dev
+    corsOrigins := os.Getenv("CORS_ALLOW_ORIGINS")
+    var corsConfig cors.Config
+    if corsOrigins == "" {
+        corsConfig = cors.Config{
+            AllowCredentials: true,
+            AllowOriginsFunc: func(origin string) bool { return true },
+            AllowMethods:     "GET,POST,PUT,DELETE",
+            AllowHeaders:     "Authorization,Content-Type,X-Refresh-Token,X-Admin-Key,X-Request-ID",
+        }
+    } else {
+        corsConfig = cors.Config{
+            AllowCredentials: true,
+            AllowOrigins:     corsOrigins,
+            AllowMethods:     "GET,POST,PUT,DELETE",
+            AllowHeaders:     "Authorization,Content-Type,X-Refresh-Token,X-Admin-Key,X-Request-ID",
+        }
+    }
+    app.Use(cors.New(corsConfig))
 
     // Routes
     serverHttp.SetupRoutes(app)

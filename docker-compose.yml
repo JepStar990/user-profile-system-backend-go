@@ -35,7 +35,7 @@ services:
 
       ADMIN_API_KEY: "CHANGE_ME_ADMIN_KEY"
 
-      CORS_ALLOW_ORIGINS: "http://localhost:5173"
+      CORS_ALLOW_ORIGINS: ""
       OTEL_EXPORTER_OTLP_ENDPOINT: ""
 
     ports:
