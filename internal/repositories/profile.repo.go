@@ -5,7 +5,6 @@ import (
     "user-profile-system-backend-go/internal/models"
 
     "github.com/google/uuid"
-    "gorm.io/gorm"
 )
 
 func GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, error) {

@@ -45,7 +45,7 @@ func FindDownload(userID uuid.UUID, contentID, contentType string) (*models.User
     return &d, err
 }
 
-func Exists(userID uuid.UUID, contentID, contentType string) bool {
+func DownloadExists(userID uuid.UUID, contentID, contentType string) bool {
     var count int64
     db.DB.Model(&models.UserDownload{}).
         Where("user_id = ? AND content_id = ? AND content_type = ?", userID, contentID, contentType).

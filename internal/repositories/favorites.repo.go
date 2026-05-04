@@ -39,8 +39,8 @@ func ListFavorites(userID uuid.UUID) ([]models.UserFavorite, error) {
     return items, err
 }
 
-// Exists checks if a favorite exists
-func Exists(userID uuid.UUID, contentID, contentType string) bool {
+// FavoriteExists checks if a favorite exists
+func FavoriteExists(userID uuid.UUID, contentID, contentType string) bool {
     var count int64
     db.DB.Model(&models.UserFavorite{}).
         Where("user_id = ? AND content_id = ? AND content_type = ?", userID, contentID, contentType).

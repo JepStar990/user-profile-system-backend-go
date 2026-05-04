@@ -1,13 +1,10 @@
 package repositories
 
 import (
-    "errors"
-
     "user-profile-system-backend-go/internal/db"
     "user-profile-system-backend-go/internal/models"
 
     "github.com/google/uuid"
-    "gorm.io/gorm"
 )
 
 // GetHistory returns all history entries for a user.
