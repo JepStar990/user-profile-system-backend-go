@@ -38,5 +38,12 @@ func migrate() {
     DB.AutoMigrate(
         &models.User{},
         &models.RefreshToken{},
+        &models.UserProfile{},
+        &models.UserSettings{},
+        &models.UserFavorite{},
+        &models.UserDownload{},
+        &models.UserHistory{},
+        &models.ActivityLog{},
+        &models.ListeningEvent{},
     )
 }
